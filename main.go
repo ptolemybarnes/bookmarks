@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 
 	fuzzyfinder "github.com/ktr0731/go-fuzzyfinder"
 )
@@ -17,8 +19,10 @@ type Bookmark struct {
 
 func loadBookmarks() ([]Bookmark, error) {
 	var bookmarks []Bookmark
-	filePath := "./bookmarks.json"
-	data, err := ioutil.ReadFile(filePath)
+	_, currentFile, _, _ := runtime.Caller(0)
+	currentDir := filepath.Dir(currentFile)
+	bookmarksPath := filepath.Join(currentDir, "bookmarks.json")
+	data, err := ioutil.ReadFile(bookmarksPath)
 	if err != nil {
 		return bookmarks, err
 	}
