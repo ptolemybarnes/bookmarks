@@ -1,24 +1,59 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "os"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os/exec"
 
-    "github.com/urfave/cli/v2"
+	fuzzyfinder "github.com/ktr0731/go-fuzzyfinder"
 )
 
-func main() {
-    app := &cli.App{
-        Name:  "boom",
-        Usage: "make an explosive entrance",
-        Action: func(*cli.Context) error {
-            fmt.Println("boom! I say!")
-            return nil
-        },
-    }
+type Bookmark struct {
+	Description string
+	Url         string
+}
 
-    if err := app.Run(os.Args); err != nil {
-        log.Fatal(err)
-    }
+func loadBookmarks() ([]Bookmark, error) {
+	var bookmarks []Bookmark
+	filePath := "./bookmarks.json"
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return bookmarks, err
+	}
+
+	err = json.Unmarshal(data, &bookmarks)
+	if err != nil {
+		return bookmarks, err
+	}
+	return bookmarks, nil
+}
+
+func main() {
+	bookmarks, err := loadBookmarks()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	idx, err := fuzzyfinder.FindMulti(
+		bookmarks,
+		func(i int) string {
+			return bookmarks[i].Description
+		},
+		fuzzyfinder.WithPreviewWindow(func(i, w, h int) string {
+			if i == -1 {
+				return ""
+			}
+			return fmt.Sprintf("Bookmark: %s \nUrl: %s",
+				bookmarks[i].Description,
+				bookmarks[i].Url)
+		}))
+	if err != nil {
+		log.Fatal(err)
+	}
+	selectedUrl := bookmarks[idx[0]].Url
+	fmt.Printf("selected: %v\n", selectedUrl)
+	cmd := exec.Command("open", selectedUrl)
+	cmd.Run()
 }
