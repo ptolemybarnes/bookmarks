@@ -1,4 +1,4 @@
-module 4biblos.surge.sh/bookmarks
+module 4biblos.surge.sh/search-bookmarks-cli
 
 go 1.20
 

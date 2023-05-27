@@ -1,1 +1,1 @@
-# bookmarks
+# search-bookmarks-cli
